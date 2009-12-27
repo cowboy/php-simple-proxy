@@ -160,7 +160,7 @@ ob_start();
 </p>
 <p id="sample">
   Try a few sample Remote URLs:
-  <a href="http://www.google.com/">Google</a>,
+  <a href="http://github.com/">GitHub</a>,
   <a href="http://github.com/cowboy/php-simple-proxy/raw/master/examples/simple/json_sample.js">sample JSON (not JSONP) file</a>,
   <a href="http://github.com/omg404errorpage">404 error page</a>
 </p>
