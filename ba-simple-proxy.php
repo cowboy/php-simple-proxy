@@ -71,7 +71,7 @@
 // Topic: JSONP data structure
 // 
 // This request:
-// ba-simple-proxy.php?mode=json&url=http://www.google.com/?callback=foo
+// ba-simple-proxy.php?mode=json&url=http://www.google.com/&callback=foo
 // 
 // Will return the contents of http://www.google.com/ in JSONP format:
 // foo({ "contents": "<html>...</html>", "headers": {...}, "status": {...} })
