@@ -119,7 +119,7 @@ lt. brown: #C4884F
   display: block;
   border: 1px solid #000;
   width: 540px;
-  padding: 0.2em;
+  padding: 2px;
   margin-bottom: 0.6em;
 }
 
@@ -152,15 +152,17 @@ ob_start();
   price to have to pay for this much awesomeness.
 </p>
 <p>
-  This example page shows one way in which you can utilize this proxy in your own JavaScript application.
-  While jQuery is used here, you can use any library you'd like.. or just code your XMLHttpRequest objects
-  by hand.
+  Please note that while jQuery is used here, you can use any library you'd like.. or just code your
+  XMLHttpRequest objects by hand, it doesn't matter. This proxy just acts a bridge between the client
+  and server to facilitate cross-domain communication, so the client-side JavaScript is entirely left
+  up to you (but I recommend jQuery's <a href="http://docs.jquery.com/Ajax/jQuery.getJSON">getJSON</a>
+  method because of its simplicity).
 </p>
 <p id="sample">
   Try a few sample Remote URLs:
   <a href="http://www.google.com/">Google</a>,
-  <a href="http://benalman.com/code/projects/php-simple-proxy/examples/simple/json_sample.js">a sample JSON (not JSONP) file</a>,
-  <a href="http://github.com/omg404errorpage">a 404 error page</a>
+  <a href="http://github.com/cowboy/php-simple-proxy/raw/master/examples/simple/json_sample.js">sample JSON (not JSONP) file</a>,
+  <a href="http://github.com/omg404errorpage">404 error page</a>
 </p>
 
 <form id="params" method="get" action="">

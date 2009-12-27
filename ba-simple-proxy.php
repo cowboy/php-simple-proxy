@@ -114,13 +114,17 @@ if ( $_GET['url'] ) {
   
   list( $header, $contents ) = preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch ), 2 );
   
-  // Split header text into an array.
-  $header_text = preg_split( '/[\r\n]+/', $header );
-  
   $status = curl_getinfo( $ch );
   
   curl_close( $ch );
+  
+} else {
+  $contents = 'ERROR: url not specified';
+  $status = array( 'http_code' => 'ERROR' );
 }
+
+// Split header text into an array.
+$header_text = preg_split( '/[\r\n]+/', $header );
 
 if ( $_GET['mode'] == 'json' ) {
   
