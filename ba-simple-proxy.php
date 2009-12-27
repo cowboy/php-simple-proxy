@@ -61,7 +61,8 @@
 // ba-simple-proxy.php?mode=json&url=http://www.google.com/
 // 
 // Will return the contents of http://www.google.com/ in JSON format:
-// { "contents": "<html>...</html>", "headers": {...}, "status": {...} }
+// 
+// > { "contents": "<html>...</html>", "headers": {...}, "status": {...} }
 // 
 //   contents - (String) The contents of the remote URL resource.
 //   headers - (Object) A hash of HTTP headers returned by the remote URL
@@ -74,7 +75,8 @@
 // ba-simple-proxy.php?mode=json&url=http://www.google.com/&callback=foo
 // 
 // Will return the contents of http://www.google.com/ in JSONP format:
-// foo({ "contents": "<html>...</html>", "headers": {...}, "status": {...} })
+// 
+// > foo({ "contents": "<html>...</html>", "headers": {...}, "status": {...} })
 // 
 //   contents - (String) The contents of the remote URL resource.
 //   headers - (Object) A hash of HTTP headers returned by the remote URL
