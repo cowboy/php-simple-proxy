@@ -165,7 +165,7 @@ if ( $_GET['mode'] == 'json' ) {
   // Generate JSON/JSONP string
   $json = json_encode( $data );
   
-  print $jsonp_callback ? $jsonp_callback . "($json)" : $json;
+  print $jsonp_callback ? "$jsonp_callback($json)" : $json;
   
 } else {
   
