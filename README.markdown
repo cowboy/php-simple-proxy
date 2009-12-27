@@ -1,7 +1,7 @@
 # Simple PHP Proxy: Get external HTML, JSON and more! #
 [http://benalman.com/projects/php-simple-proxy/](http://benalman.com/projects/php-simple-proxy/)
 
-Version: 1.5pre, Last updated: ??/??/2009
+Version: 1.5, Last updated: 12/27/2009
 
 With Simple PHP Proxy, your JavaScript can access content in remote webpages, without cross-domain security limitations, even if it's not available in JSONP format. Of course, you'll need to install this PHP script on your server.. but that's a small price to have to pay for this much awesomeness.
 
@@ -21,7 +21,7 @@ in which this PHP script can be used.
 
 ## Release History ##
 
-1.5pre - (??/??/2009) Pre-Initial release
+1.5 - (12/27/2009) Initial release
 
 
 ## License ##

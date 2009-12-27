@@ -2,7 +2,7 @@
 
 // Script: Simple PHP Proxy: Get external HTML, JSON and more!
 //
-// *Version: 1.5pre, Last updated: ??/??/2009*
+// *Version: 1.5, Last updated: 12/27/2009*
 // 
 // Project Home - http://benalman.com/projects/php-simple-proxy/
 // GitHub       - http://github.com/cowboy/php-simple-proxy/
@@ -23,7 +23,7 @@
 // 
 // About: Release History
 // 
-// 1.5pre - (??/??/2009) Pre-Initial release
+// 1.5 - (12/27/2009) Initial release
 // 
 // Topic: GET Parameters
 // 

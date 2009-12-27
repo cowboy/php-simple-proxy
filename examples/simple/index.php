@@ -55,6 +55,11 @@ $(function(){
     return false;
   });
   
+  // Submit the form on page load if ?url= is passed into the example page.
+  if ( $('#url').val() !== '' ) {
+    $('#params').submit();
+  }
+  
   // Disable AJAX caching.
   $.ajaxSetup({ cache: false });
   
@@ -69,7 +74,7 @@ $(function(){
   
   // Clicking sample remote urls should populate the "Remote URL" box.
   $('#sample a').click(function(){
-    $('#params input[name=url]').val( $(this).attr( 'href' ) );
+    $('#url').val( $(this).attr( 'href' ) );
     return false;
   });
 });
@@ -176,7 +181,7 @@ ob_start();
   <div>
     <label>
       <b>Remote URL</b>
-      <input class="text" type="text" name="url" value="">
+      <input id="url" class="text" type="text" name="url" value="<?= $_GET['url'] ?>">
     </label>
   </div>
   <p id="sample">
