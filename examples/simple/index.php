@@ -19,8 +19,11 @@ $(function(){
     var proxy = '../../ba-simple-proxy.php',
       url = proxy + '?' + $('#params').serialize();
     
+    // Update some stuff.
     $('#request').html( $('<a/>').attr( 'href', url ).text( url ) );
+    $('#response').html( 'Loading...' );
     
+    // Test to see if JSON mode.
     if ( $('#params input[name=mode]').attr( 'checked' ) ) {
       
       // Make JSON request.
@@ -64,6 +67,7 @@ $(function(){
         .attr( 'disabled', that.attr('checked') ? '' : 'disabled' );
   });
   
+  // Clicking sample remote urls should populate the "Remote URL" box.
   $('#sample a').click(function(){
     $('#params input[name=url]').val( $(this).attr( 'href' ) );
     return false;
@@ -120,7 +124,7 @@ lt. brown: #C4884F
   border: 1px solid #000;
   width: 540px;
   padding: 2px;
-  margin-bottom: 0.6em;
+  margin-bottom: 0.2em;
 }
 
 #params input.submit {
@@ -130,6 +134,10 @@ lt. brown: #C4884F
 
 .indent {
   margin-left: 1em;
+}
+
+#sample {
+  font-size: 90%;
 }
 
 </style>
@@ -158,11 +166,10 @@ ob_start();
   up to you (but I recommend jQuery's <a href="http://docs.jquery.com/Ajax/jQuery.getJSON">getJSON</a>
   method because of its simplicity).
 </p>
-<p id="sample">
-  Try a few sample Remote URLs:
-  <a href="http://github.com/">GitHub</a>,
-  <a href="http://github.com/cowboy/php-simple-proxy/raw/master/examples/simple/json_sample.js">sample JSON (not JSONP) file</a>,
-  <a href="http://github.com/omg404errorpage">404 error page</a>
+<p>
+  Please see the <a href="http://benalman.com/projects/php-simple-proxy/">project page</a> and 
+  <a href="http://benalman.com/code/projects/php-simple-proxy/docs/">documentation</a> for more usage
+  information.
 </p>
 
 <form id="params" method="get" action="">
@@ -172,6 +179,12 @@ ob_start();
       <input class="text" type="text" name="url" value="">
     </label>
   </div>
+  <p id="sample">
+    ..or try these sample Remote URLs:
+    <a href="http://github.com/">GitHub</a>,
+    <a href="http://github.com/cowboy/php-simple-proxy/raw/master/examples/simple/json_sample.js">a sample JSON (not JSONP) request</a>,
+    <a href="http://github.com/omg404errorpage">a 404 error page</a>
+  </p>
   <div>
     <label>
       <input class="checkbox" type="checkbox" name="mode" value="json" checked="checked">
