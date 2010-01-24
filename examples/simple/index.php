@@ -23,21 +23,8 @@ $(function(){
     $('#request').html( $('<a/>').attr( 'href', url ).text( url ) );
     $('#response').html( 'Loading...' );
     
-    // Test to see if JSON mode.
-    if ( $('#params input[name=mode]').attr( 'checked' ) ) {
-      
-      // Make JSON request.
-      $.getJSON( url, function(data){
-        
-        $('#response')
-          .html( '<pre class="brush:js"/>' )
-          .find( 'pre' )
-            .text( JSON.stringify( data, null, 2 ) );
-        
-        SyntaxHighlighter.highlight();
-      });
-      
-    } else {
+    // Test to see if HTML mode.
+    if ( /mode=native/.test( url ) ) {
       
       // Make GET request.
       $.get( url, function(data){
@@ -46,6 +33,19 @@ $(function(){
           .html( '<pre class="brush:xml"/>' )
           .find( 'pre' )
             .text( data );
+        
+        SyntaxHighlighter.highlight();
+      });
+      
+    } else {
+      
+      // Make JSON request.
+      $.getJSON( url, function(data){
+        
+        $('#response')
+          .html( '<pre class="brush:js"/>' )
+          .find( 'pre' )
+            .text( JSON.stringify( data, null, 2 ) );
         
         SyntaxHighlighter.highlight();
       });
@@ -64,12 +64,17 @@ $(function(){
   $.ajaxSetup({ cache: false });
   
   // Disable dependent checkboxes as necessary.
-  $('input:checkbox').click(function(){
-    var that = $(this);
+  $('input:radio').click(function(){
+    var that = $(this),
+      c1 = 'dependent-' + that.attr('name'),
+      c2 = c1 + '-' + that.val();
     
     that.closest('form')
-      .find( '.dependent-' + that.attr('name') + ' input' )
-        .attr( 'disabled', that.attr('checked') ? '' : 'disabled' );
+      .find( '.' + c1 + ' input' )
+        .attr( 'disabled', 'disabled' )
+        .end()
+      .find( '.' + c2 + ' input' )
+        .removeAttr( 'disabled' );
   });
   
   // Clicking sample remote urls should populate the "Remote URL" box.
@@ -192,20 +197,26 @@ ob_start();
   </p>
   <div>
     <label>
-      <input class="checkbox" type="checkbox" name="mode" value="json" checked="checked">
+      <input type="radio" name="mode" value="native" disabled="disabled">
+      Native <i>(disabled by default)</i>
+    </label>
+  </div>
+  <div>
+    <label>
+      <input type="radio" name="mode" value="json" checked="checked" disabled="disabled">
       JSON
     </label>
   </div>
-  <div class="dependent-mode indent">
+  <div class="dependent-mode dependent-mode-json indent">
     <div>
       <label>
-        <input class="checkbox" type="checkbox" name="full_headers" value="1" checked="checked">
+        <input type="checkbox" name="full_headers" value="1" checked="checked">
         Full Headers
       </label>
     </div>
     <div>
       <label>
-        <input class="checkbox" type="checkbox" name="full_status" value="1" checked="checked">
+        <input type="checkbox" name="full_status" value="1" checked="checked">
         Full Status
       </label>
     </div>
