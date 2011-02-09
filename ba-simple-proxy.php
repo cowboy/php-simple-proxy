@@ -136,119 +136,225 @@
 // ############################################################################
 
 // Change these configuration options if needed, see above descriptions for info.
-$enable_jsonp    = false;
-$enable_native   = false;
-$valid_url_regex = '/.*/';
 
 // ############################################################################
 
-$url = $_GET['url'];
+main();
 
-if ( !$url ) {
+function main(){
+  $proxy = new SimpleProxy();	
+  $url = $proxy->getURL();
+  $headersContent = $proxy->fetchURL($url);
+ if( sizeof($headersContent) !=2){
+   throw new Exception("Error trying to get content: "+$url);
+ }
+ // print_r(  $headersContent[0]);
   
-  // Passed url not specified.
-  $contents = 'ERROR: url not specified';
-  $status = array( 'http_code' => 'ERROR' );
-  
-} else if ( !preg_match( $valid_url_regex, $url ) ) {
-  
-  // Passed url doesn't match $valid_url_regex.
-  $contents = 'ERROR: invalid url';
-  $status = array( 'http_code' => 'ERROR' );
-  
-} else {
-  $ch = curl_init( $url );
-  
-  if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
-    curl_setopt( $ch, CURLOPT_POST, true );
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $_POST );
-  }
-  
-  if ( $_GET['send_cookies'] ) {
-    $cookie = array();
-    foreach ( $_COOKIE as $key => $value ) {
-      $cookie[] = $key . '=' . $value;
-    }
-    if ( $_GET['send_session'] ) {
-      $cookie[] = SID;
-    }
-    $cookie = implode( '; ', $cookie );
-    
-    curl_setopt( $ch, CURLOPT_COOKIE, $cookie );
-  }
-  
-  curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
-  curl_setopt( $ch, CURLOPT_HEADER, true );
-  curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-  
-  curl_setopt( $ch, CURLOPT_USERAGENT, $_GET['user_agent'] ? $_GET['user_agent'] : $_SERVER['HTTP_USER_AGENT'] );
-  
-  list( $header, $contents ) = preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch ), 2 );
-  
-  $status = curl_getinfo( $ch );
-  
-  curl_close( $ch );
+  //print_r($headersContent);
+ $proxy->outputHeaders($headersContent[0]);
+
+  $content = $proxy->filterContent($headersContent[1], $url);
+
+  $proxy->outputContent($content);
+  //	print_r($headersContent[0]);
+  //print $headersContent[1];
+
 }
 
-// Split header text into an array.
-$header_text = preg_split( '/[\r\n]+/', $header );
+class SimpleProxy {
+  protected $enable_jsonp    = false;
+  protected $enable_native   = false;
+  protected $valid_url_regex = '/.*/';
 
-if ( $_GET['mode'] == 'native' ) {
-  if ( !$enable_native ) {
-    $contents = 'ERROR: invalid mode';
-    $status = array( 'http_code' => 'ERROR' );
-  }
-  
-  // Propagate headers to response.
-  foreach ( $header_text as $header ) {
-    if ( preg_match( '/^(?:Content-Type|Content-Language|Set-Cookie):/i', $header ) ) {
-      header( $header );
+  function getURL(){
+    global $valid_url_regex;
+    $url = $_GET['url'];
+    $needle = "url=";
+    $pos = strpos($_SERVER['REQUEST_URI'], $needle);
+    $url = substr($_SERVER['REQUEST_URI'], $pos+strlen($needle));
+    if ( !$url ) {
+      // Passed url not specified.
+      $contents = 'ERROR: url not specified';
+      $status = array( 'http_code' => 'ERROR' );
+      throw new Exception("URL not specified.");
+    } else if ( !preg_match( $this->valid_url_regex, $url ) ) {
+      // Passed url doesn't match $valid_url_regex.
+      $contents = 'ERROR: invalid url';
+      $status = array( 'http_code' => 'ERROR' );
+      throw new Exception("Invalid  url,");
     }
+    return $url;
   }
-  
-  print $contents;
-  
-} else {
-  
-  // $data will be serialized into JSON data.
-  $data = array();
-  
-  // Propagate all HTTP headers into the JSON data object.
-  if ( $_GET['full_headers'] ) {
-    $data['headers'] = array();
+
+  function fetchURL($url){
+
+    $ch = curl_init( $url );
+
+    if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
+      curl_setopt( $ch, CURLOPT_POST, true );
+      curl_setopt( $ch, CURLOPT_POSTFIELDS, $_POST );
+    }
+
+    if ( $_GET['send_cookies'] ) {
+      $cookie = array();
+      foreach ( $_COOKIE as $key => $value ) {
+	    $cookie[] = $key . '=' . $value;
+      }
+      if ( $_GET['send_session'] ) {
+	    $cookie[] = SID;
+      }
+     
+      $cookie = implode( '; ', $cookie );
+
+      curl_setopt( $ch, CURLOPT_COOKIE, $cookie );
+    }
+
+    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
+    curl_setopt( $ch, CURLOPT_HEADER, true );
+    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+
+    curl_setopt( $ch, CURLOPT_USERAGENT, $_GET['user_agent'] ? $_GET['user_agent'] : $_SERVER['HTTP_USER_AGENT'] );
+
+    $response =  curl_exec( $ch );
+   
+    curl_close( $ch );
+
+    do{
+      $headerStartPosition = strpos($response, "HTTP/");
+      $headerEndPosition = strpos($response, "\n\r", $headerStartPosition);
+      $header = substr($response, $headerStartPosition, $headerEndPosition-$headerStartPosition);
+    }while(strpos($response, "HTTP/", $headerEndPosition)!==false);
+  //    print ".".$header.".";
+     
+    $headerLines = explode("\n", $header);
+    $content = substr($response, $headerEndPosition+3);
     
-    foreach ( $header_text as $header ) {
-      preg_match( '/^(.+?):\s+(.*)$/', $header, $matches );
-      if ( $matches ) {
-        $data['headers'][ $matches[1] ] = $matches[2];
+    
+    
+    
+  
+    
+    return array($headerLines, $content);
+    
+    
+  }
+
+  function outputHeaders(array $headers){
+
+    //filterHeaders($headers);
+
+    //print "<br/><br/>";
+    foreach ( $headers as $h ) {
+      //if ( preg_match( '/^(Content-Type|Content-Language|Set-Cookie):/i', $h ) ) {
+	    header( $h );
+	    //print $h;
+	    //print "</br>";
+      //}
+    }
+    
+  }
+
+
+
+  function filterHeaders($headers){
+    $matches = array();
+    foreach($headers as $h){
+      // grab http code
+      if(preg_match("/^HTTP\/[0-9]+[\.][0-9][\s]*([0-9]+)[\s]*(.*)$/i", $h, $matches)){
+	switch($matches[1]){
+	  case 301: // Moved Permanently
+
+	}
       }
     }
   }
-  
-  // Propagate all cURL request / response info to the JSON data object.
-  if ( $_GET['full_status'] ) {
-    $data['status'] = $status;
-  } else {
-    $data['status'] = array();
-    $data['status']['http_code'] = $status['http_code'];
+
+  function filterContent($content, $url){
+    $parts = parse_url($url);
+    $baseURL = $parts['scheme'].'://'.$parts['host'];
+    // change image links
+    $content =  preg_replace('/([< ]+src[\s]*=[\s]*"?)([http:\/\/])?([^ ">]+)/', "$1http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=$baseURL/$2$3$4", $content);
+
+    // change background links
+    $content =  preg_replace('/(background[\s]*=[\s]*"?)([http:\/\/])?([^ ]+)("?)/', "$1http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=$baseURL/$2$3$4", $content); 
+
+
+    // change anchor links
+    $content = preg_replace('/(href[\s]*="?)([^ >"]+)/i', "$1http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=$baseURL/$2$3", $content);
+    //<body background=images/bg01.gif
+    return $content;
   }
-  
-  // Set the JSON data object contents, decoding it from JSON if possible.
-  $decoded_json = json_decode( $contents );
-  $data['contents'] = $decoded_json ? $decoded_json : $contents;
-  
-  // Generate appropriate content-type header.
-  $is_xhr = strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-  header( 'Content-type: application/' . ( $is_xhr ? 'json' : 'x-javascript' ) );
-  
-  // Get JSONP callback.
-  $jsonp_callback = $enable_jsonp && isset($_GET['callback']) ? $_GET['callback'] : null;
-  
-  // Generate JSON/JSONP string
-  $json = json_encode( $data );
-  
-  print $jsonp_callback ? "$jsonp_callback($json)" : $json;
-  
+
+
+
+  function outputContent($content){
+    echo $content;
+  }
+
 }
 
-?>
+
+
+
+
+
+
+
+
+
+
+/*
+   if ( $_GET['mode'] == 'native' ) {
+   if ( !$enable_native ) {
+   $contents = 'ERROR: invalid mode';
+   $status = array( 'http_code' => 'ERROR' );
+   }
+
+// Propagate headers to response.
+
+
+print $contents;
+
+} else {
+
+// $data will be serialized into JSON data.
+$data = array();
+
+// Propagate all HTTP headers into the JSON data object.
+if ( $_GET['full_headers'] ) {
+$data['headers'] = array();
+
+foreach ( $header_text as $header ) {
+preg_match( '/^(.+?):\s+(.*)$/', $header, $matches );
+if ( $matches ) {
+$data['headers'][ $matches[1] ] = $matches[2];
+}
+}
+}
+
+// Propagate all cURL request / response info to the JSON data object.
+if ( $_GET['full_status'] ) {
+$data['status'] = $status;
+} else {
+$data['status'] = array();
+$data['status']['http_code'] = $status['http_code'];
+}
+
+// Set the JSON data object contents, decoding it from JSON if possible.
+$decoded_json = json_decode( $contents );
+$data['contents'] = $decoded_json ? $decoded_json : $contents;
+
+// Generate appropriate content-type header.
+$is_xhr = strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+header( 'Content-type: application/' . ( $is_xhr ? 'json' : 'x-javascript' ) );
+
+// Get JSONP callback.
+$jsonp_callback = $enable_jsonp && isset($_GET['callback']) ? $_GET['callback'] : null;
+
+// Generate JSON/JSONP string
+$json = json_encode( $data );
+
+print $jsonp_callback ? "$jsonp_callback($json)" : $json;
+
+}*/
+	
