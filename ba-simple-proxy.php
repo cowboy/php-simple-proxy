@@ -165,6 +165,9 @@ class SimpleProxy {
   protected $enable_jsonp    = false;
   protected $enable_native   = false;
   protected $valid_url_regex = '/.*/';
+  
+  protected $url;
+  protected $contentType;
 
   function getURL(){
     global $valid_url_regex;
@@ -172,6 +175,7 @@ class SimpleProxy {
     $needle = "url=";
     $pos = strpos($_SERVER['REQUEST_URI'], $needle);
     $url = substr($_SERVER['REQUEST_URI'], $pos+strlen($needle));
+    
     if ( !$url ) {
       // Passed url not specified.
       $contents = 'ERROR: url not specified';
@@ -183,6 +187,7 @@ class SimpleProxy {
       $status = array( 'http_code' => 'ERROR' );
       throw new Exception("Invalid  url,");
     }
+    $this->url = $url;
     return $url;
   }
 
@@ -216,20 +221,37 @@ class SimpleProxy {
     curl_setopt( $ch, CURLOPT_USERAGENT, $_GET['user_agent'] ? $_GET['user_agent'] : $_SERVER['HTTP_USER_AGENT'] );
 
     $response =  curl_exec( $ch );
+   $this->url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+   $_GET['url']=$this->url;
+   $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
    
+   $semiColon = strpos($contentType, ";");
+   
+   if($semiColon === false){
+	   $this->mimeType = $contentType;
+   } else {
+	  $this->mimeType = substr($contentType, 0, $semiColon);
+   }
+     
     curl_close( $ch );
-
+    //print $response;
+    //print "<br/><br/>";
+    $headerStartPosition = 0;
+    $headerEndPosition = 0;
     do{
-      $headerStartPosition = strpos($response, "HTTP/");
+	  $headerStartPosition = $headerEndPosition;
+      $headerStartPosition = strpos($response, "HTTP/", $headerStartPosition);
       $headerEndPosition = strpos($response, "\n\r", $headerStartPosition);
+      
       $header = substr($response, $headerStartPosition, $headerEndPosition-$headerStartPosition);
+     // print $header;
     }while(strpos($response, "HTTP/", $headerEndPosition)!==false);
   //    print ".".$header.".";
      
     $headerLines = explode("\n", $header);
     $content = substr($response, $headerEndPosition+3);
     
-    
+
     
     
   
@@ -270,20 +292,52 @@ class SimpleProxy {
   }
 
   function filterContent($content, $url){
+	 if($this->contentType == "text/html") {
+		 return;
+	 }
+	 
+	 $linkMap = create_function ('$match',' 
+		  $link = $match[2];
+		   $parts = parse_url($_GET[\'url\']);
+    $baseURL = $parts[\'scheme\'].\'://\'.$parts[\'host\'].$parts[\'path\'];
+		  if(substr($link, 0, 4)==="http"){
+		     return "href=\"http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=$link\"";
+		  }
+		  return "href=\"http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=$baseURL/$link\"";
+		
+		');
+		
+    	 $imageMap = create_function ('$match',' 
+		  $link = $match[2];
+		   $parts = parse_url($_GET[\'url\']);
+    $baseURL = $parts[\'scheme\'].\'://\'.$parts[\'host\'].$parts[\'path\'];
+		  if(substr($link, 0, 4)==="http"){
+		     return "href=\"http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=$link\"";
+		  } if($link[0]=="/"){
+		      return $match[1]."http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=".$baseURL."/".$match[2].$match[3].$match[4];
+		  } else {
+			 $parts = explode("/", $baseURL);
+			 array_pop($parts);
+			 $baseURL = implode($parts, "/");
+			return $match[1]."http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=".$baseURL."/".$match[2].$match[3].$match[4]; 
+
+		  }
+		
+		');
     $parts = parse_url($url);
     $baseURL = $parts['scheme'].'://'.$parts['host'];
     // change image links
-    $content =  preg_replace('/([< ]+src[\s]*=[\s]*"?)([http:\/\/])?([^ ">]+)/', "$1http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=$baseURL/$2$3$4", $content);
-
+    $content =  preg_replace_callback('/([< ]+src[\s]*=[\s]*"?)([http:\/\/])?([^ ">]+)/', $imageMap, $content);
     // change background links
     $content =  preg_replace('/(background[\s]*=[\s]*"?)([http:\/\/])?([^ ]+)("?)/', "$1http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=$baseURL/$2$3$4", $content); 
 
 
     // change anchor links
-    $content = preg_replace('/(href[\s]*="?)([^ >"]+)/i', "$1http://localhost:8080/gewthen/tools/proxy/ba-simple-proxy.php?url=$baseURL/$2$3", $content);
+    $content = preg_replace_callback('/(href[\s]*="?)([^ >"]+)/i',  $linkMap , $content);
     //<body background=images/bg01.gif
     return $content;
   }
+
 
 
 
