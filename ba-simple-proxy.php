@@ -176,6 +176,11 @@ if ( !$url ) {
     
     curl_setopt( $ch, CURLOPT_COOKIE, $cookie );
   }
+
+  if ( isset($_GET['authorization']) ) {
+    // Set the Authorization header
+    curl_setopt( $ch, CURLOPT_HTTPHEADER, array("Authorization: ".$_GET['authorization'] ));
+  }
   
   curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
   curl_setopt( $ch, CURLOPT_HEADER, true );
