@@ -165,7 +165,7 @@ if ( !$url ) {
   // Pass on content, regardless of request method
   if ( isset($_SERVER['CONTENT_LENGTH'] ) && $_SERVER['CONTENT_LENGTH'] > 0 ) {
     curl_setopt( $ch, CURLOPT_POSTFIELDS, file_get_contents("php://input") );
-  }  
+  }
 
   if ( $_GET['send_cookies'] ) {
     $cookie = array();
@@ -181,9 +181,9 @@ if ( !$url ) {
   }
 
   $headers = array();
-  if ( isset($_GET['authorization']) ) {
+  if ( isset($_SERVER['HTTP_X_AUTHORIZATION']) ) {
     // Set the Authorization header
-    array_push($headers, "Authorization: ".$_GET['authorization'] );
+    array_push($headers, "Authorization: ".$_SERVER['HTTP_X_AUTHORIZATION'] );
   }
   if ( isset($_SERVER['CONTENT_TYPE']) ) {
 	// Pass through the Content-Type header
