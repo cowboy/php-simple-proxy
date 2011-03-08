@@ -158,12 +158,15 @@ if ( !$url ) {
   
 } else {
   $ch = curl_init( $url );
-  
-  if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
-    curl_setopt( $ch, CURLOPT_POST, true );
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $_POST );
-  }
-  
+
+  // Pass on request method, regardless of what it is
+  curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD'] );
+
+  // Pass on content, regardless of request method
+  if ( isset($_SERVER['CONTENT_LENGTH'] ) && $_SERVER['CONTENT_LENGTH'] > 0 ) {
+    curl_setopt( $ch, CURLOPT_POSTFIELDS, file_get_contents("php://input") );
+  }  
+
   if ( $_GET['send_cookies'] ) {
     $cookie = array();
     foreach ( $_COOKIE as $key => $value ) {
@@ -177,9 +180,17 @@ if ( !$url ) {
     curl_setopt( $ch, CURLOPT_COOKIE, $cookie );
   }
 
+  $headers = array();
   if ( isset($_GET['authorization']) ) {
     // Set the Authorization header
-    curl_setopt( $ch, CURLOPT_HTTPHEADER, array("Authorization: ".$_GET['authorization'] ));
+    array_push($headers, "Authorization: ".$_GET['authorization'] );
+  }
+  if ( isset($_SERVER['CONTENT_TYPE']) ) {
+	// Pass through the Content-Type header
+	array_push($headers, "Content-Type: ".$_SERVER['CONTENT_TYPE'] );
+  }	
+  if ( count($headers) > 0 ) {
+	curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
   }
   
   curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
@@ -253,7 +264,7 @@ if ( $_GET['mode'] == 'native' ) {
   $json = json_encode( $data );
   
   print $jsonp_callback ? "$jsonp_callback($json)" : $json;
-  
+
 }
 
 ?>
