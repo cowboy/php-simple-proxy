@@ -161,7 +161,7 @@ if ( !$url ) {
   
   if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
     curl_setopt( $ch, CURLOPT_POST, true );
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $_POST );
+    curl_setopt( $ch, CURLOPT_POSTFIELDS, file_get_contents("php://input") );
   }
   
   if ( $_GET['send_cookies'] ) {
