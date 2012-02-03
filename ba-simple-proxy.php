@@ -23,6 +23,7 @@
 // 
 // About: Release History
 // 
+// 1.7 - (2/03/2012) Add optional whitelist-check by Stefan Hoth <sh@jnamic.com>
 // 1.6 - (1/24/2009) Now defaults to JSON mode, which can now be changed to
 //       native mode by specifying ?mode=native. Native and JSONP modes are
 //       disabled by default because of possible XSS vulnerability issues, but
@@ -139,6 +140,10 @@
 $enable_jsonp    = false;
 $enable_native   = false;
 $valid_url_regex = '/.*/';
+/**
+ * only domains listed in this array will be allowed to be proxied
+ */
+$WHITELIST_DOMAINS = array('google.com','google.de');
 
 // ############################################################################
 
@@ -154,6 +159,12 @@ if ( !$url ) {
   
   // Passed url doesn't match $valid_url_regex.
   $contents = 'ERROR: invalid url';
+  $status = array( 'http_code' => 'ERROR' );
+  
+}elseif (   is_array($WHITELIST_DOMAINS) && ! empty($WHITELIST_DOMAINS) && 
+            ! in_array( parse_url($url,PHP_URL_HOST), $WHITELIST_DOMAINS) ) {
+
+  $contents = 'ERROR: invalid url (not in whitelist)';
   $status = array( 'http_code' => 'ERROR' );
   
 } else {
