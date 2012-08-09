@@ -185,6 +185,10 @@ if ( !$url ) {
   
   list( $header, $contents ) = preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch ), 2 );
   
+  if($header == 'HTTP/1.1 100 Continue') {
+    list($header, $contents) = preg_split( '/([\r\n][\r\n])\\1/', $contents, 2 );
+  }
+
   $status = curl_getinfo( $ch );
   
   curl_close( $ch );
