@@ -161,7 +161,7 @@ if ( !$url ) {
   
   if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
     curl_setopt( $ch, CURLOPT_POST, true );
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $_POST );
+    curl_setopt( $ch, CURLOPT_POSTFIELDS, $HTTP_RAW_POST_DATA );
   }
   
   if ( $_GET['send_cookies'] ) {
@@ -182,6 +182,8 @@ if ( !$url ) {
   curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
   
   curl_setopt( $ch, CURLOPT_USERAGENT, $_GET['user_agent'] ? $_GET['user_agent'] : $_SERVER['HTTP_USER_AGENT'] );
+  
+  curl_setopt( $ch, CURLOPT_HTTPHEADER, array( "Content-Type: " . $_SERVER['HTTP_CONTENT_TYPE'] ) );
   
   list( $header, $contents ) = preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch ), 2 );
   
