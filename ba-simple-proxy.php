@@ -288,7 +288,7 @@ if ( !$url ) {
       curl_setopt( $ch, CURLOPT_POSTFIELDS, file_get_contents("php://input") );
     }
     
-    if ( $_GET['send_cookies'] ) {
+    if (isset($_GET['send_cookies']) && $_GET['send_cookies'] ) {
       $cookie = array();
       foreach ( $_COOKIE as $key => $value ) {
         $cookie[] = $key . '=' . $value;
@@ -318,7 +318,7 @@ if ( !$url ) {
     curl_setopt( $ch, CURLOPT_HEADER, true );
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
     
-    curl_setopt( $ch, CURLOPT_USERAGENT, $_GET['user_agent'] ? $_GET['user_agent'] : $_SERVER['HTTP_USER_AGENT'] );
+    curl_setopt( $ch, CURLOPT_USERAGENT, isset($_GET['user_agent']) && $_GET['user_agent'] ? $_GET['user_agent'] : $_SERVER['HTTP_USER_AGENT'] );
     
     list( $header, $contents ) = preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch ), 2 );
     
@@ -337,7 +337,7 @@ if ( !$url ) {
 // Split header text into an array.
 $header_text = preg_split( '/[\r\n]+/', $header );
 
-if ( $_GET['mode'] == 'native' ) {
+if (isset($_GET['mode']) && $_GET['mode'] == 'native' ) {
   if ( !$enable_native ) {
     $contents = 'ERROR: invalid mode';
     $status = array( 'http_code' => 'ERROR' );
@@ -358,7 +358,7 @@ if ( $_GET['mode'] == 'native' ) {
   $data = array();
   
   // Propagate all HTTP headers into the JSON data object.
-  if ( $_GET['full_headers'] ) {
+  if (isset($_GET['full_headers']) && $_GET['full_headers'] ) {
     $data['headers'] = array();
     
     foreach ( $header_text as $header ) {
@@ -370,7 +370,7 @@ if ( $_GET['mode'] == 'native' ) {
   }
   
   // Propagate all cURL request / response info to the JSON data object.
-  if ( $_GET['full_status'] ) {
+  if (isset($_GET['full_status']) && $_GET['full_status'] ) {
     $data['status'] = $status;
   } else {
     $data['status'] = array();
