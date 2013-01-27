@@ -319,8 +319,15 @@ if ( !$url ) {
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
     
     curl_setopt( $ch, CURLOPT_USERAGENT, isset($_GET['user_agent']) && $_GET['user_agent'] ? $_GET['user_agent'] : $_SERVER['HTTP_USER_AGENT'] );
+  // in case you wish Not to confirm the CA for your server (e.g. it's inside your org)
+  // curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER , false);
     
-    list( $header, $contents ) = preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch ), 2 );
+  $res = curl_exec( $ch );
+  if ($res === FALSE) {
+    // in case we have errors - let's report them!
+    die(curl_error($ch));
+  }
+  list( $header, $contents ) = preg_split( '/([\r\n][\r\n])\\1/', $res, 2 );
     
     $status = curl_getinfo( $ch );
     
