@@ -23,6 +23,7 @@
 // 
 // About: Release History
 // 
+// 1.9 - (1/27/2013) Combined improvements/functionality of several github forks into a single brance <PiBa-NL>
 // 1.8 - (2/03/2012) Add optional caching of proxied results by Stefan Hoth <sh@jnamic.com>
 // 1.7 - (2/03/2012) Add optional whitelist-check by Stefan Hoth <sh@jnamic.com>
 // 1.6 - (1/24/2009) Now defaults to JSON mode, which can now be changed to
