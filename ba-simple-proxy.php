@@ -152,7 +152,7 @@
 
 // Change these configuration options if needed, see above descriptions for info.
 $enable_jsonp    = false;
-$enable_native   = false;
+$enable_native   = true;
 $valid_url_regex = '/.*/';
 /**
  * only domains listed in this array will be allowed to be proxied
