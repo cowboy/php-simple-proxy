@@ -383,7 +383,7 @@ if ( $_GET['mode'] == 'native' ) {
 
   // Generate appropriate content-type header.
   $is_xhr = strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-  header( 'Content-type: application/' . ( $is_xhr ? 'json' : 'x-javascript' ) );
+  header( 'Content-type: application/' . ( $is_xhr ? 'json' : 'javascript' ) );
   
   // Get JSONP callback.
   $jsonp_callback = $enable_jsonp && isset($_GET['callback']) ? $_GET['callback'] : null;
