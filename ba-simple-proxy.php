@@ -284,6 +284,7 @@ if ( !$url ) {
 
     // Pass on content, regardless of request method
     if ( isset($_SERVER['CONTENT_LENGTH'] ) && $_SERVER['CONTENT_LENGTH'] > 0 ) {
+	  // PiBa-NL (possibly an issue with  enctype="multipart/form-data" ??)
       curl_setopt( $ch, CURLOPT_POSTFIELDS, file_get_contents("php://input") );
     }
     
