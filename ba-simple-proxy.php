@@ -132,6 +132,19 @@
 //     ensure that it is valid. This setting only needs to be used if either
 //     $enable_jsonp or $enable_native are enabled. Defaults to '/.*/' which
 //     validates all URLs.
+//   $authz_header - an index into the $_SERVER array locating authorization
+//     data which is to be proxied in the HTTP Authorization header. This is
+//     necessary since, in a default deployment, Apache will not pass an
+//     incoming Authorization header to a script. As a convention, we pass
+//     authorization data to the proxy in the X-Authorization header, so the
+//     default value is 'HTTP_X_AUTHORIZATION'
+//   $cors_allow_origin - a space-separated list of origins, each of the form
+//     https://example.com:8443, from which scripts will be allowed to access
+//     the proxy. See http://www.w3.org/TR/cors/ for details.
+//   $cors_allow_methods - HTTP methods allowed from the origins specified in
+//     $cors_allow_origin. Defaults to 'GET, POST, PUT, PATCH, DELETE, HEAD'
+//   $cors_allow_headers - HTTP headers allowed from the origins specified in
+//     $cors_allow_origin. Defaults to 'X-Authorization, Content-Type'
 // 
 // ############################################################################
 
@@ -139,6 +152,12 @@
 $enable_jsonp    = false;
 $enable_native   = false;
 $valid_url_regex = '/.*/';
+
+$authz_header = 'HTTP_X_AUTHORIZATION';
+
+$cors_allow_origin  = null;
+$cors_allow_methods = 'GET, POST, PUT, PATCH, DELETE, HEAD';
+$cors_allow_headers = 'X-Authorization, Content-Type';
 
 // ############################################################################
 
@@ -157,13 +176,31 @@ if ( !$url ) {
   $status = array( 'http_code' => 'ERROR' );
   
 } else {
-  $ch = curl_init( $url );
-  
-  if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
-    curl_setopt( $ch, CURLOPT_POST, true );
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $_POST );
+
+  if ( isset( $cors_allow_origin ) ) {
+    header( 'Access-Control-Allow-Origin: '.$cors_allow_origin );
+    if ( isset( $cors_allow_methods ) ) {
+      header( 'Access-Control-Allow-Methods: '.$cors_allow_methods );
+    }
+    if ( isset( $cors_allow_headers ) ) {
+      header( 'Access-Control-Allow-Headers: '.strtolower($cors_allow_headers) );
+    }
+    if ( $_SERVER['REQUEST_METHOD'] == 'OPTIONS' ) {
+      // We're done - don't proxy CORS OPTIONS request
+      exit();
+	}
   }
-  
+
+  $ch = curl_init( $url );
+
+  // Pass on request method, regardless of what it is
+  curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD'] );
+
+  // Pass on content, regardless of request method
+  if ( isset($_SERVER['CONTENT_LENGTH'] ) && $_SERVER['CONTENT_LENGTH'] > 0 ) {
+    curl_setopt( $ch, CURLOPT_POSTFIELDS, file_get_contents("php://input") );
+  }
+
   if ( $_GET['send_cookies'] ) {
     $cookie = array();
     foreach ( $_COOKIE as $key => $value ) {
@@ -175,6 +212,19 @@ if ( !$url ) {
     $cookie = implode( '; ', $cookie );
     
     curl_setopt( $ch, CURLOPT_COOKIE, $cookie );
+  }
+
+  $headers = array();
+  if ( isset($authz_header) && isset($_SERVER[$authz_header]) ) {
+    // Set the Authorization header
+    array_push($headers, "Authorization: ".$_SERVER[$authz_header] );
+  }
+  if ( isset($_SERVER['CONTENT_TYPE']) ) {
+	// Pass through the Content-Type header
+	array_push($headers, "Content-Type: ".$_SERVER['CONTENT_TYPE'] );
+  }	
+  if ( count($headers) > 0 ) {
+	curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
   }
   
   curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
@@ -236,7 +286,7 @@ if ( $_GET['mode'] == 'native' ) {
   // Set the JSON data object contents, decoding it from JSON if possible.
   $decoded_json = json_decode( $contents );
   $data['contents'] = $decoded_json ? $decoded_json : $contents;
-  
+
   // Generate appropriate content-type header.
   $is_xhr = strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
   header( 'Content-type: application/' . ( $is_xhr ? 'json' : 'x-javascript' ) );
@@ -248,7 +298,7 @@ if ( $_GET['mode'] == 'native' ) {
   $json = json_encode( $data );
   
   print $jsonp_callback ? "$jsonp_callback($json)" : $json;
-  
+
 }
 
 ?>
