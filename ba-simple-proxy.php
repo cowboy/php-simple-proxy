@@ -202,7 +202,7 @@ if ( !$url ) {
 
   if ( $_GET['remove_files'] ) {
     foreach ( $files as $key => $value ) {
-      if ( file_exists( $value ) && is_readable( $value ) ) {
+      if ( is_writable( $value ) ) {
         @unlink( $value );
       }
     }
