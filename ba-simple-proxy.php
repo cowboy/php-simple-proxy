@@ -2,7 +2,7 @@
 
 // Script: Simple PHP Proxy: Get external HTML, JSON and more!
 //
-// *Version: 1.6, Last updated: 1/24/2009*
+// *Version: 1.7, Last updated: 11/9/2013*
 // 
 // Project Home - http://benalman.com/projects/php-simple-proxy/
 // GitHub       - http://github.com/cowboy/php-simple-proxy/
@@ -23,6 +23,8 @@
 // 
 // About: Release History
 // 
+// 1.7 - (11/9/2013) Now the proxy handles also passed files.
+//       (Thanks to danieletorelli @ GitHub)
 // 1.6 - (1/24/2009) Now defaults to JSON mode, which can now be changed to
 //       native mode by specifying ?mode=native. Native and JSONP modes are
 //       disabled by default because of possible XSS vulnerability issues, but
@@ -55,6 +57,8 @@
 //   full_status - If a JSON request and full_status=1, the JSON response will
 //     contain detailed cURL status information, otherwise it will just contain
 //     the `http_code` property.
+//   remove_files - If one or more files has been passed, delete them from
+//     temporary directory after the proxy job is completed.
 // 
 // Topic: POST Parameters
 // 
@@ -158,7 +162,14 @@ if ( !$url ) {
   
 } else {
   $ch = curl_init( $url );
-  
+
+  $files = array();
+  if ( !empty( $_FILES ) ) {
+    foreach ( $_FILES as $key => $value ) {
+      $files[$key] = '@' . $_FILES[$key]['tmp_name'];;
+    }
+  }
+
   if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
     curl_setopt( $ch, CURLOPT_POST, true );
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $_POST );
@@ -188,6 +199,14 @@ if ( !$url ) {
   $status = curl_getinfo( $ch );
   
   curl_close( $ch );
+
+  if ( $_GET['remove_files'] ) {
+    foreach ( $files as $key => $value ) {
+      if ( is_writable( $value ) ) {
+        @unlink( $value );
+      }
+    }
+  }
 }
 
 // Split header text into an array.
