@@ -157,6 +157,7 @@ if ( !$url ) {
   $status = array( 'http_code' => 'ERROR' );
   
 } else {
+  $url = str_replace ( ' ', '%20', $url );
   $ch = curl_init( $url );
   
   if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
