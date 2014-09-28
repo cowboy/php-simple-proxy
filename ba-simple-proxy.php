@@ -1,5 +1,7 @@
 <?PHP
 error_reporting(0);
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST');  
 
 // Script: Simple PHP Proxy: Get external HTML, JSON and more!
 //
