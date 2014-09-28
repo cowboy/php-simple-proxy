@@ -1,4 +1,5 @@
 <?PHP
+error_reporting(0);
 
 // Script: Simple PHP Proxy: Get external HTML, JSON and more!
 //
