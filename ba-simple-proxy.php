@@ -2,7 +2,7 @@
 
 // Script: Simple PHP Proxy: Get external HTML, JSON and more!
 //
-// *Version: 1.6, Last updated: 1/24/2009*
+// *Version: 1.6.1, Last updated: 2/12/2023*
 // 
 // Project Home - http://benalman.com/projects/php-simple-proxy/
 // GitHub       - http://github.com/cowboy/php-simple-proxy/
@@ -142,7 +142,7 @@ $valid_url_regex = '/.*/';
 
 // ############################################################################
 
-$url = $_GET['url'];
+$url = @$_GET['url'];
 
 if ( !$url ) {
   
@@ -164,12 +164,12 @@ if ( !$url ) {
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $_POST );
   }
   
-  if ( $_GET['send_cookies'] ) {
+  if ( @$_GET['send_cookies'] ) {
     $cookie = array();
     foreach ( $_COOKIE as $key => $value ) {
       $cookie[] = $key . '=' . $value;
     }
-    if ( $_GET['send_session'] ) {
+    if ( @$_GET['send_session'] ) {
       $cookie[] = SID;
     }
     $cookie = implode( '; ', $cookie );
@@ -181,9 +181,9 @@ if ( !$url ) {
   curl_setopt( $ch, CURLOPT_HEADER, true );
   curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
   
-  curl_setopt( $ch, CURLOPT_USERAGENT, $_GET['user_agent'] ? $_GET['user_agent'] : $_SERVER['HTTP_USER_AGENT'] );
+  curl_setopt( $ch, CURLOPT_USERAGENT, @$_GET['user_agent'] ? $_GET['user_agent'] : $_SERVER['HTTP_USER_AGENT'] );
   
-  list( $header, $contents ) = preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch ), 2 );
+  list( $header, $contents ) = array_slice(preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch )), -2, 2);
   
   $status = curl_getinfo( $ch );
   
@@ -193,7 +193,7 @@ if ( !$url ) {
 // Split header text into an array.
 $header_text = preg_split( '/[\r\n]+/', $header );
 
-if ( $_GET['mode'] == 'native' ) {
+if ( @$_GET['mode'] == 'native' ) {
   if ( !$enable_native ) {
     $contents = 'ERROR: invalid mode';
     $status = array( 'http_code' => 'ERROR' );
@@ -214,7 +214,7 @@ if ( $_GET['mode'] == 'native' ) {
   $data = array();
   
   // Propagate all HTTP headers into the JSON data object.
-  if ( $_GET['full_headers'] ) {
+  if ( @$_GET['full_headers'] ) {
     $data['headers'] = array();
     
     foreach ( $header_text as $header ) {
@@ -226,7 +226,7 @@ if ( $_GET['mode'] == 'native' ) {
   }
   
   // Propagate all cURL request / response info to the JSON data object.
-  if ( $_GET['full_status'] ) {
+  if ( @$_GET['full_status'] ) {
     $data['status'] = $status;
   } else {
     $data['status'] = array();
@@ -238,11 +238,11 @@ if ( $_GET['mode'] == 'native' ) {
   $data['contents'] = $decoded_json ? $decoded_json : $contents;
   
   // Generate appropriate content-type header.
-  $is_xhr = strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+  $is_xhr = strtolower(@$_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
   header( 'Content-type: application/' . ( $is_xhr ? 'json' : 'x-javascript' ) );
   
   // Get JSONP callback.
-  $jsonp_callback = $enable_jsonp && isset($_GET['callback']) ? $_GET['callback'] : null;
+  $jsonp_callback = $enable_jsonp && isset($_GET['callback']) ? @$_GET['callback'] : null;
   
   // Generate JSON/JSONP string
   $json = json_encode( $data );
